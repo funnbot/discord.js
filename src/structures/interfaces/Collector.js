@@ -75,7 +75,7 @@ class Collector extends EventEmitter {
    */
   handleCollect(...args) {
     const collect = this.collect(...args);
-    if (!collect || !this.filter(...args)) return;
+    if (!collect || !this.filter(...args, true)) return;
 
     this.collected.set(collect.key, collect.value);
 
