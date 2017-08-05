@@ -1,6 +1,7 @@
 const User = require('./User');
 const Collection = require('../util/Collection');
 const ClientUserSettings = require('./ClientUserSettings');
+const ClientUserGuildSettings = require('./ClientUserGuildSettings');
 const Constants = require('../util/Constants');
 const Util = require('../util/Util');
 const Guild = require('./Guild');
@@ -77,7 +78,21 @@ class ClientUser extends User {
      * <warn>This is only filled when using a user account.</warn>
      * @type {?ClientUserSettings}
      */
-    if (data.user_settings) this.settings = new ClientUserSettings(this, data.user_settings);
+    this.settings = data.user_settings ? new ClientUserSettings(this, data.user_settings) : null;
+
+    /**
+     * All of the user's guild settings
+     * @type {Collection<Snowflake, ClientUserGuildSettings>}
+     * <warn>This is only filled when using a user account</warn>
+     */
+    this.guildSettings = new Collection();
+    if (data.user_guild_settings) {
+      for (const settings of data.user_guild_settings) {
+        settings.client = this.client;
+        const guild = this.client.guilds.get(settings.guild_id);
+        this.guildSettings.set(settings.guild_id, new ClientUserGuildSettings(settings, guild));
+      }
+    }
   }
 
   edit(data, password) {
@@ -330,7 +345,6 @@ class ClientUser extends User {
    * An object containing either a user or access token, and an optional nickname.
    * @typedef {Object} GroupDMRecipientOptions
    * @property {UserResolvable} [user] User to add to the Group DM
-   * (only available if a user is creating the DM)
    * @property {string} [accessToken] Access token to use to add a user to the Group DM
    * (only available if a bot is creating the DM)
    * @property {string} [nick] Permanent nickname (only available if a bot is creating the DM)
@@ -350,7 +364,7 @@ class ClientUser extends User {
         if (r.nick) o[r.user ? r.user.id : r.id] = r.nick;
         return o;
       }, {}),
-    } : { recipients: recipients.map(u => this.client.resolver.resolveUserID(u)) };
+    } : { recipients: recipients.map(u => this.client.resolver.resolveUserID(u.user || u.id)) };
     return this.client.api.users('@me').channels.post({ data })
       .then(res => new GroupDMChannel(this.client, res));
   }
