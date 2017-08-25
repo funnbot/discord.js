@@ -33,7 +33,6 @@ const Constants = require('../util/Constants');
 class GroupDMChannel extends Channel {
   constructor(client, data) {
     super(client, data);
-    this.type = 'group';
     this.messages = new Collection();
     this._typing = new Map();
   }
@@ -49,7 +48,7 @@ class GroupDMChannel extends Channel {
 
     /**
      * A hash of this Group DM icon
-     * @type {string}
+     * @type {?string}
      */
     this.icon = data.icon;
 
@@ -71,11 +70,13 @@ class GroupDMChannel extends Channel {
      */
     this.applicationID = data.application_id;
 
-    /**
-     * Nicknames for group members
-     * @type {?Collection<Snowflake, string>}
-     */
-    if (data.nicks) this.nicks = new Collection(data.nicks.map(n => [n.id, n.nick]));
+    if (data.nicks) {
+      /**
+       * Nicknames for group members
+       * @type {?Collection<Snowflake, string>}
+       */
+      this.nicks = new Collection(data.nicks.map(n => [n.id, n.nick]));
+    }
 
     if (!this.recipients) {
       /**
@@ -105,7 +106,7 @@ class GroupDMChannel extends Channel {
   }
 
   /**
-   * Gets the URL to this Group DM's icon
+   * Gets the URL to this Group DM's icon.
    * @param {Object} [options={}] Options for the icon url
    * @param {string} [options.format='webp'] One of `webp`, `png`, `jpg`
    * @param {number} [options.size=128] One of `128`, '256', `512`, `1024`, `2048`
@@ -181,7 +182,7 @@ class GroupDMChannel extends Channel {
   /**
    * Adds an user to this Group DM.
    * @param {Object} options Options for this method
-   * @param {UserResolveable} options.user User to add to this Group DM
+   * @param {UserResolvable} options.user User to add to this Group DM
    * @param {string} [options.accessToken] Access token to use to add the user to this Group DM
    * (only available under a bot account)
    * @param {string} [options.nick] Permanent nickname to give the user (only available under a bot account)
@@ -198,7 +199,7 @@ class GroupDMChannel extends Channel {
 
   /**
    * Removes an user from this Group DM.
-   * @param {UserResolveable} user User to remove
+   * @param {UserResolvable} user User to remove
    * @returns {Promise<GroupDMChannel>}
    */
   removeUser(user) {

@@ -5,7 +5,8 @@ const EventEmitter = require('events');
  * Filter to be applied to the collector.
  * @typedef {Function} CollectorFilter
  * @param {...*} args Any arguments received by the listener
- * @returns {boolean} To collect or not collect
+ * @param {Collection} collection The items collected by this collector
+ * @returns {boolean}
  */
 
 /**
@@ -75,7 +76,7 @@ class Collector extends EventEmitter {
    */
   handleCollect(...args) {
     const collect = this.collect(...args);
-    if (!collect || !this.filter(...args)) return;
+    if (!collect || !this.filter(...args, this.collected)) return;
 
     this.collected.set(collect.key, collect.value);
 
@@ -186,7 +187,7 @@ class Collector extends EventEmitter {
   collect() {}
 
   /**
-   * Handles incoming events from the the `handleDispose`. Returns null if the event should not
+   * Handles incoming events from the `handleDispose`. Returns null if the event should not
    * be disposed, or returns the key that should be removed.
    * @see Collector#handleDispose
    * @param {...*} args Any args the event listener emits

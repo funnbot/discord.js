@@ -36,21 +36,6 @@ class TextChannel extends GuildChannel {
   }
 
   /**
-   * A collection of members that can see this channel, mapped by their ID
-   * @type {Collection<Snowflake, GuildMember>}
-   * @readonly
-   */
-  get members() {
-    const members = new Collection();
-    for (const member of this.guild.members.values()) {
-      if (this.permissionsFor(member).has('READ_MESSAGES')) {
-        members.set(member.id, member);
-      }
-    }
-    return members;
-  }
-
-  /**
    * Fetch all webhooks for the channel.
    * @returns {Promise<Collection<Snowflake, Webhook>>}
    */
@@ -69,9 +54,9 @@ class TextChannel extends GuildChannel {
    * @param {string} [reason] Reason for creating this webhook
    * @returns {Promise<Webhook>} webhook The created webhook
    * @example
-   * channel.createWebhook('Snek', 'http://snek.s3.amazonaws.com/topSnek.png')
-   *  .then(webhook => console.log(`Created webhook ${webhook}`))
-   *  .catch(console.error)
+   * channel.createWebhook('Snek', 'https://i.imgur.com/mI8XcpG.jpg')
+   *   .then(webhook => console.log(`Created webhook ${webhook}`))
+   *   .catch(console.error)
    */
   createWebhook(name, avatar, reason) {
     if (typeof avatar === 'string' && avatar.startsWith('data:')) {

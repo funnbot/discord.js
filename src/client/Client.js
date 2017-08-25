@@ -1,4 +1,3 @@
-const os = require('os');
 const EventEmitter = require('events');
 const Constants = require('../util/Constants');
 const Permissions = require('../util/Permissions');
@@ -16,7 +15,7 @@ const VoiceRegion = require('../structures/VoiceRegion');
 const Webhook = require('../structures/Webhook');
 const User = require('../structures/User');
 const Invite = require('../structures/Invite');
-const OAuth2Application = require('../structures/OAuth2Application');
+const ClientApplication = require('../structures/ClientApplication');
 const ShardClientUtil = require('../sharding/ShardClientUtil');
 const VoiceBroadcast = require('./voice/VoiceBroadcast');
 const { Error, TypeError, RangeError } = require('../errors');
@@ -265,7 +264,7 @@ class Client extends EventEmitter {
    * @readonly
    */
   get browser() {
-    return os.platform() === 'browser';
+    return typeof window !== 'undefined';
   }
 
   /**
@@ -415,7 +414,7 @@ class Client extends EventEmitter {
    */
   fetchApplication(id = '@me') {
     return this.api.oauth2.applications(id).get()
-      .then(app => new OAuth2Application(this, app));
+      .then(app => new ClientApplication(this, app));
   }
 
   /**

@@ -40,7 +40,7 @@ class Webhook {
 
     /**
      * The avatar for the webhook
-     * @type {string}
+     * @type {?string}
      */
     this.avatar = data.avatar;
 
@@ -94,13 +94,13 @@ class Webhook {
   /**
    * Send a message with this webhook.
    * @param {StringResolvable} [content] The content to send
-   * @param {WebhookMessageOptions} [options={}] The options to provide
+   * @param {WebhookMessageOptions|MessageEmbed|Attachment|Attachment[]} [options={}] The options to provide
    * @returns {Promise<Message|Object>}
    * @example
    * // Send a message
    * webhook.send('hello!')
-   *  .then(message => console.log(`Sent message: ${message.content}`))
-   *  .catch(console.error);
+   *   .then(message => console.log(`Sent message: ${message.content}`))
+   *   .catch(console.error);
    */
   send(content, options) { // eslint-disable-line complexity
     if (!options && typeof content === 'object' && !(content instanceof Array)) {
