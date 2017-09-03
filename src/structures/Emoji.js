@@ -1,19 +1,14 @@
-const Constants = require('../util/Constants');
 const Collection = require('../util/Collection');
 const Snowflake = require('../util/Snowflake');
+const Base = require('./Base');
 
 /**
  * Represents a custom emoji.
+ * @extends {Base}
  */
-class Emoji {
+class Emoji extends Base {
   constructor(guild, data) {
-    /**
-     * The client that instantiated this object
-     * @name Emoji#client
-     * @type {Client}
-     * @readonly
-     */
-    Object.defineProperty(this, 'client', { value: guild.client });
+    super(guild.client);
 
     /**
      * The guild this emoji is part of
@@ -21,10 +16,10 @@ class Emoji {
      */
     this.guild = guild;
 
-    this.setup(data);
+    this._patch(data);
   }
 
-  setup(data) {
+  _patch(data) {
     /**
      * The ID of the emoji
      * @type {Snowflake}
@@ -89,7 +84,7 @@ class Emoji {
    * @readonly
    */
   get url() {
-    return Constants.Endpoints.CDN(this.client.options.http.cdn).Emoji(this.id);
+    return this.client.rest.cdn.Emoji(this.id);
   }
 
   /**
@@ -203,6 +198,16 @@ class Emoji {
    */
   toString() {
     return this.requiresColons ? `<:${this.name}:${this.id}>` : this.name;
+  }
+
+  /**
+   * Delete the emoji.
+   * @param {string} [reason] Reason for deleting the emoji
+   * @returns {Promise<Emoji>}
+   */
+  delete(reason) {
+    return this.client.api.guilds(this.guild.id).emojis(this.id).delete({ reason })
+      .then(() => this);
   }
 
   /**

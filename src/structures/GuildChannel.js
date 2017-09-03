@@ -22,8 +22,8 @@ class GuildChannel extends Channel {
     this.guild = guild;
   }
 
-  setup(data) {
-    super.setup(data);
+  _patch(data) {
+    super._patch(data);
 
     /**
      * The name of the guild channel
@@ -127,10 +127,11 @@ class GuildChannel extends Channel {
   }
 
   /**
-   * An object mapping permission flags to `true` (enabled) or `false` (disabled).
+   * An object mapping permission flags to `true` (enabled), `null` (default) or `false` (disabled).
    * ```js
    * {
    *  'SEND_MESSAGES': true,
+   *  'EMBED_LINKS': null,
    *  'ATTACH_FILES': false,
    * }
    * ```
@@ -217,7 +218,7 @@ class GuildChannel extends Channel {
    * @property {number} [position] The position of the channel
    * @property {string} [topic] The topic of the text channel
    * @property {number} [bitrate] The bitrate of the voice channel
-   * @property {number} [userLimit] The user limit of voice the channel
+   * @property {number} [userLimit] The user limit of the voice channel
    */
 
   /**
@@ -241,7 +242,11 @@ class GuildChannel extends Channel {
         user_limit: data.userLimit || this.userLimit,
       },
       reason,
-    }).then(newData => this.client.actions.ChannelUpdate.handle(newData).updated);
+    }).then(newData => {
+      const clone = this._clone();
+      clone._patch(newData);
+      return clone;
+    });
   }
 
   /**
