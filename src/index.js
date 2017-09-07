@@ -2,6 +2,7 @@ const Util = require('./util/Util');
 
 module.exports = {
   // "Root" classes (starting points)
+  BaseClient: require('./client/BaseClient'),
   Client: require('./client/Client'),
   Shard: require('./sharding/Shard'),
   ShardClientUtil: require('./sharding/ShardClientUtil'),
@@ -11,7 +12,7 @@ module.exports = {
   // Utilities
   Collection: require('./util/Collection'),
   Constants: require('./util/Constants'),
-  DiscordAPIError: require('./client/rest/DiscordAPIError'),
+  DiscordAPIError: require('./rest/DiscordAPIError'),
   EvaluatedPermissions: require('./util/Permissions'),
   Permissions: require('./util/Permissions'),
   Snowflake: require('./util/Snowflake'),
@@ -27,7 +28,6 @@ module.exports = {
 
   // Structures
   Activity: require('./structures/Presence').Activity,
-  Attachment: require('./structures/Attachment'),
   Channel: require('./structures/Channel'),
   ClientUser: require('./structures/ClientUser'),
   ClientUserSettings: require('./structures/ClientUserSettings'),
@@ -56,4 +56,6 @@ module.exports = {
   User: require('./structures/User'),
   VoiceChannel: require('./structures/VoiceChannel'),
   Webhook: require('./structures/Webhook'),
+
+  WebSocket: require('./WebSocket'),
 };
