@@ -1,4 +1,5 @@
 const path = require('path');
+const googleTranslate = require("google-translate");
 const MessageCollector = require('../MessageCollector');
 const Shared = require('../shared');
 const Snowflake = require('../../util/Snowflake');
@@ -76,66 +77,76 @@ class TextBasedChannel {
    *   .then(message => console.log(`Sent message: ${message.content}`))
    *   .catch(console.error);
    */
-  send(content, options) { // eslint-disable-line complexity
+async function send(content, options) {
     if (!options && typeof content === 'object' && !(content instanceof Array)) {
-      options = content;
-      content = '';
+        options = content;
+        content = '';
     } else if (!options) {
-      options = {};
+        options = {};
     }
 
-    if (options instanceof MessageEmbed) options = { embed: options };
-    if (options instanceof MessageAttachment) options = { files: [options.file] };
-
-    if (content instanceof Array || options instanceof Array) {
-      const which = content instanceof Array ? content : options;
-      const attachments = which.filter(item => item instanceof MessageAttachment);
-      if (attachments.length) {
-        options = { files: attachments };
-        if (content instanceof Array) content = '';
-      }
+    if (content && typeof content === "string" && this.guild) {
+        const lang = this.guild.get("Locale");
+        if (lang && lang !== "en") {
+            const trans = await this.translate(content, lang);
+            if (trans) content = trans;
+        }
     }
 
-    if (!options.content) options.content = content;
+    if (options instanceof Attachment) options = { files: [options.file] };
+    if (options instanceof RichEmbed) options = { embed: options };
 
-    if (options.embed && options.embed.files) {
-      if (options.files) options.files = options.files.concat(options.embed.files);
-      else options.files = options.embed.files;
+    if (options.embed && options.embed.file) {
+        if (options.files) options.files.push(options.embed.file);
+        else options.files = [options.embed.file];
+    }
+
+    if (options.file) {
+        if (options.files) options.files.push(options.file);
+        else options.files = [options.file];
     }
 
     if (options.files) {
-      for (let i = 0; i < options.files.length; i++) {
-        let file = options.files[i];
-        if (typeof file === 'string' || Buffer.isBuffer(file)) file = { attachment: file };
-        if (!file.name) {
-          if (typeof file.attachment === 'string') {
-            file.name = path.basename(file.attachment);
-          } else if (file.attachment && file.attachment.path) {
-            file.name = path.basename(file.attachment.path);
-          } else if (file instanceof MessageAttachment) {
-            file = { attachment: file.file, name: path.basename(file.file) || 'file.jpg' };
-          } else {
-            file.name = 'file.jpg';
-          }
-        } else if (file instanceof MessageAttachment) {
-          file = file.file;
+        for (let i = 0; i < options.files.length; i++) {
+            let file = options.files[i];
+            if (typeof file === 'string' || Buffer.isBuffer(file)) file = { attachment: file };
+            if (!file.name) {
+                if (typeof file.attachment === 'string') {
+                    file.name = path.basename(file.attachment);
+                } else if (file.attachment && file.attachment.path) {
+                    file.name = path.basename(file.attachment.path);
+                } else if (file instanceof Attachment) {
+                    file = { attachment: file.file, name: path.basename(file.file) || 'file.jpg' };
+                } else {
+                    file.name = 'file.jpg';
+                }
+            } else if (file instanceof Attachment) {
+                file = file.file;
+            }
+            options.files[i] = file;
         }
-        options.files[i] = file;
-      }
 
-      return Promise.all(options.files.map(file =>
-        DataResolver.resolveFile(file.attachment, this.client.browser).then(resource => {
-          file.file = resource;
-          return file;
-        })
-      )).then(files => {
-        options.files = files;
-        return Shared.sendMessage(this, options);
-      });
+        return Promise.all(options.files.map(file =>
+            this.client.resolver.resolveFile(file.attachment).then(resource => {
+                file.file = resource;
+                return file;
+            })
+        )).then(files => this.client.rest.methods.sendMessage(this, content, options, files));
     }
 
-    return Shared.sendMessage(this, options);
-  }
+    return this.client.rest.methods.sendMessage(this, content, options);
+}
+
+translate(content, lang) {
+    return new Promise((resolve) => {
+        googleTranslate.translate(content, lang, (err, trans) => {
+            if (err || !trans ||
+                typeof trans !== "string" ||
+                trans.length < 1) resolve(null)
+            else resolve(trans);
+        })
+    })
+}
 
   /**
    * Performs a search within the channel.
